@@ -427,9 +427,9 @@ def writeCSX(name, **kwargs):
                 spinType='cs:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
                 basisSet='bse:' + molBasis)
             block.set_energies(form_ene(mandatoryPsivars, optionalPsivars))
-            #sdm1.set_ccsd(block)
+            #sdm1.set_ccsd(block)  # needs to be srsmd
 
-        print('CSX not harvesting: ', ', '.join(psivars))
+        #print('CSX not harvesting: ', ', '.join(psivars))
         # LAB TODO not addressed below here
         # wavefunction: 1.5
         if avalMethods:
