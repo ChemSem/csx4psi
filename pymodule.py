@@ -47,7 +47,7 @@ def writeCSX(name, **kwargs):
     import os
     import math
     import inspect
-    import openbabel
+    #import openbabel
     import qcdb
     import qcdb.periodictable
     lowername = name.lower()
@@ -221,22 +221,25 @@ def writeCSX(name, **kwargs):
         cs1 = api.csType(version='1.0') #5')
 
         # molPublication section: 1.5
+        #mp1 = api.mpType(
+        #    title=psi4.get_global_option('PUBLICATIONTITLE'),
+        #    abstract=psi4.get_global_option('PUBLICATIONABSTRACT'),
+        #    publisher=psi4.get_global_option('PUBLICATIONPUBLISHER'),
+        #    status=['PRELIMINARY', 'DRAFT', 'FINAL'].index(psi4.get_global_option('PUBLICATIONSTATUS')),
+        #    category=psi4.get_global_option('PUBLICATIONCATEGORY'),
+        #    visibility=['PRIVATE', 'PROTECTED', 'PUBLIC'].index(psi4.get_global_option('PUBLICATIONVISIBILITY')),
+        #    tags=psi4.get_global_option('PUBLICATIONTAGS'),
+        #    key=psi4.get_global_option('PUBLICATIONKEY'))
+        #email = psi4.get_global_option('EMAIL').replace('__', '@')
+        #mp1.add_author(api.authorType(
+        #    creator=psi4.get_global_option('CORRESPONDINGAUTHOR'),
+        #    type_='cs:corresponding',
+        #    organization=psi4.get_global_option('ORGANIZATION'),
+        #    email=None if email == '' else email))
         mp1 = api.mpType(
-            title=psi4.get_global_option('PUBLICATIONTITLE'),
-            abstract=psi4.get_global_option('PUBLICATIONABSTRACT'),
-            publisher=psi4.get_global_option('PUBLICATIONPUBLISHER'),
-            status=['PRELIMINARY', 'DRAFT', 'FINAL'].index(psi4.get_global_option('PUBLICATIONSTATUS')),
-            category=psi4.get_global_option('PUBLICATIONCATEGORY'),
-            visibility=['PRIVATE', 'PROTECTED', 'PUBLIC'].index(psi4.get_global_option('PUBLICATIONVISIBILITY')),
-            tags=psi4.get_global_option('PUBLICATIONTAGS'),
-            key=psi4.get_global_option('PUBLICATIONKEY'))
+            title='', abstract='', publisher='', status=0, category=2, visibility=0, tags='', key='')
         mp1.set_sourcePackage(api.sourcePackageType(name='Psi4', version=psi4.version()))
-        email = psi4.get_global_option('EMAIL').replace('__', '@')
-        mp1.add_author(api.authorType(
-            creator=psi4.get_global_option('CORRESPONDINGAUTHOR'),
-            type_='cs:corresponding',
-            organization=psi4.get_global_option('ORGANIZATION'),
-            email=None if email == '' else email))
+        mp1.add_author(api.authorType(creator='', type_='cs:corresponding', organization='', email=''))
         cs1.set_molecularPublication(mp1)
 
         # molSystem section: 1.5
