@@ -40,34 +40,34 @@ int read_options(std::string name, Options& options)
 {
     if (name == "CSX4PSI"|| options.read_globals()) {
         /*- Do write a CSX output file? -*/
-        options.add_bool("WRITE_CSX", false);
+        options.add_bool("WRITE_CSX", true);
         /*- Version of CSX. -*/
         options.add_int("CSX_VERSION", 1);
         /*- Brief title for CSX publication. -*/
-//        options.add_str("PUBLICATIONTITLE", "");
+        options.add_str("PUBLICATIONTITLE", "");
 //        /*- Abstract for CSX publication. -*/
-//        options.add_str("PUBLICATIONABSTRACT", "");
+        options.add_str("PUBLICATIONABSTRACT", "");
 //        /*- Additional tags to aid publication searches. -*/
-//        options.add_str("PUBLICATIONTAGS", "");
+        options.add_str("PUBLICATIONTAGS", "");
 //        /*- Submitting author for CSX publication. -*/
-//        options.add_str("publicationPublisher", "");
+        options.add_str("publicationPublisher", "");
 //        /*- Corresponding author for CSX publication. -*/
-//        options.add_str("CORRESPONDINGAUTHOR", "");
+        options.add_str("CORRESPONDINGAUTHOR", "");
 //        /*- Organization to which corresponding or submitting author belongs. -*/
-//        options.add_str("ORGANIZATION", "");
+        options.add_str("ORGANIZATION", "");
 //        /*- E-mail address of record for CSX publication -*/
-//        options.add_str("EMAIL", "");
+        options.add_str("EMAIL", "");
 //        /*- Area of chemistry. -*/
-//        options.add_int("PUBLICATIONCATEGORY", 2);
+        options.add_int("PUBLICATIONCATEGORY", 2);
 //        /*- Visibility of CSX publication. ``PRIVATE`` accessible only by
 //        submitting author with password. ``PROTECTED`` accessible with key
 //        provided by submitting author. ``PUBLIC`` freely accessible. -*/
-//        options.add_str("PUBLICATIONVISIBILITY", "PRIVATE", "PRIVATE PROTECTED PUBLIC");
+        options.add_str("PUBLICATIONVISIBILITY", "PRIVATE", "PRIVATE PROTECTED PUBLIC");
 //        /*- Status of CSX publication. ``PRELIMINARY`` is unreviewed.
 //        ``DRAFT`` is not fully reviewed. ``FINAL`` is final. -*/
-//        options.add_str("PUBLICATIONSTATUS", "PRELIMINARY", "PRELIMINARY DRAFT FINAL");
+        options.add_str("PUBLICATIONSTATUS", "PRELIMINARY", "PRELIMINARY DRAFT FINAL");
 //        /*-  -*/
-//        options.add_int("PUBLICATIONKEY", 0);
+        options.add_int("PUBLICATIONKEY", 0);
     }
 
     return true;

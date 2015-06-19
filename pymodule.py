@@ -50,6 +50,7 @@ def writeCSX(name, **kwargs):
     #import openbabel
     import qcdb
     import qcdb.periodictable
+    import csx1_api as api
     lowername = name.lower()
     # Make sure the molecule the user provided is the active one
     if ('molecule' in kwargs):
@@ -65,9 +66,11 @@ def writeCSX(name, **kwargs):
         'gradient': 1,
         'optimize': 1,
         'frequency': 2,
+        'frequencies': 2,
         'hessian': 2,
         }
     dertype = derdict[calledby]
+    hasFreq = False
     # Start to write the CSX file
     # First grab molecular information and energies from psi4
     geom = molecule.save_string_xyz()  # OB
@@ -172,8 +175,46 @@ def writeCSX(name, **kwargs):
                 orbCbString.append(' '.join(str(x) for x in orbCb))
             orbEbString = ' '.join(str(x) for x in sorted(orbEb))
         #   orbColString = ' '.join(str(x) for x in orbCol)
+        if wfnRestricted:
+            wfn1 = api.waveFunctionType(
+                orbitalCount=orbNum,
+                orbitalOccupancies=orbOccString)
+            orbe1 = api.stringArrayType(unit='cs:hartree')
+            orbe1.set_valueOf_(orbEString)
+            orbs1 = api.orbitalsType()
+            for iorb in range(orbNum):
+                orb1 = api.stringArrayType(id=iorb+1)
+                orb1.set_valueOf_(orbCaString[iorb])
+                orbs1.add_orbital(orb1)
+            wfn1.set_orbitals(orbs1)
+            wfn1.set_orbitalEnergies(orbe1)
+        else:
+            wfn1 = api.waveFunctionType(orbitalCount=orbNum)
+            # alpha electron: 1.5
+            orbe1 = api.stringArrayType(unit='cs:hartree')
+            orbe1.set_valueOf_(orbEString)
+            wfn1.set_alphaOrbitalEnergies(orbe1)
+            wfn1.set_alphaOrbitalOccupancies(orbOccString)
+            aorbs1 = api.orbitalsType()
+            for iorb in range(orbNum):
+                orb1 = api.stringArrayType(id=iorb+1)
+                orb1.set_valueOf_(orbCaString[iorb])
+                aorbs1.add_orbital(orb1)
+            wfn1.set_alphaOrbitals(aorbs1)
+            # beta electron: 1.5
+            orbeb1 = api.stringArrayType(unit='cs:hartree')
+            orbeb1.set_valueOf_(orbEbString)
+            wfn1.set_betaOrbitalEnergies(orbeb1)
+            wfn1.set_betaOrbitalOccupancies(orbOccCbString)
+            borbs1 = api.orbitalsType()
+            for iorb in range(orbNum):
+                orb1 = api.stringArrayType(id=iorb+1)
+                orb1.set_valueOf_(orbCbString[iorb])
+                borbs1.add_orbital(orb1)
+            wfn1.set_betaOrbitals(borbs1)
     # frequency information
     if dertype == 2:
+        hasFreq = True
         molFreq = psi4.get_frequencies()
         molFreqNum = molFreq.dim(0)
         frq = []
@@ -193,6 +234,20 @@ def writeCSX(name, **kwargs):
                     normM.append(normMod.get(count))
                     count += 1
             normMdString.append(' '.join(str(x) for x in normM))
+        vib1 = api.vibAnalysisType(vibrationCount=molFreqNum)
+        freq1 = api.stringArrayType(unit="cs:cm-1")
+        freq1.set_valueOf_(frqString)
+        vib1.set_frequencies(freq1)
+        irint1 = api.stringArrayType()
+        irint1.set_valueOf_(intString)
+        vib1.set_irIntensities(irint1)
+        norms1 = api.normalModesType()
+        for ifrq in range(molFreqNum):
+            norm1 = api.normalModeType(id=ifrq+1)
+            norm1.set_valueOf_(normMdString[ifrq])
+            norms1.add_normalMode(norm1)
+        vib1.set_normalModes(norms1)
+    # dipole moment information
     molDipoleX = psi4.get_variable('CURRENT DIPOLE X')
     molDipoleY = psi4.get_variable('CURRENT DIPOLE Y')
     molDipoleZ = psi4.get_variable('CURRENT DIPOLE Z')
@@ -200,6 +255,27 @@ def writeCSX(name, **kwargs):
         molDipoleX * molDipoleX +
         molDipoleY * molDipoleY +
         molDipoleZ * molDipoleZ)
+    prop1 = api.propertiesType()
+    sprop1 = api.propertyType(
+        name='dipoleMomentX',
+        unit='cs:debye')
+    sprop1.set_valueOf_(molDipoleX)
+    sprop2 = api.propertyType(
+        name='dipoleMomentY',
+        unit='cs:debye')
+    sprop2.set_valueOf_(molDipoleY)
+    sprop3 = api.propertyType(
+        name='dipoleMomentZ',
+        unit='cs:debye')
+    sprop3.set_valueOf_(molDipoleZ)
+    sprop4 = api.propertyType(
+        name='dipoleMomentAverage',
+        unit='cs:debye')
+    sprop4.set_valueOf_(molDipoleTot)
+    prop1.add_systemProperty(sprop1)
+    prop1.add_systemProperty(sprop2)
+    prop1.add_systemProperty(sprop3)
+    prop1.add_systemProperty(sprop4)
 
     # get the basename for the CSX file
     psio = psi4.IO.shared_object()
@@ -217,29 +293,29 @@ def writeCSX(name, **kwargs):
     # Start to generate CSX elements
     # CSX version 1.5
     if csxVer == 1.0:
-        import csx1_api as api
+        #       import csx1_api as api
         cs1 = api.csType(version='1.0') #5')
 
         # molPublication section: 1.5
-        #mp1 = api.mpType(
-        #    title=psi4.get_global_option('PUBLICATIONTITLE'),
-        #    abstract=psi4.get_global_option('PUBLICATIONABSTRACT'),
-        #    publisher=psi4.get_global_option('PUBLICATIONPUBLISHER'),
-        #    status=['PRELIMINARY', 'DRAFT', 'FINAL'].index(psi4.get_global_option('PUBLICATIONSTATUS')),
-        #    category=psi4.get_global_option('PUBLICATIONCATEGORY'),
-        #    visibility=['PRIVATE', 'PROTECTED', 'PUBLIC'].index(psi4.get_global_option('PUBLICATIONVISIBILITY')),
-        #    tags=psi4.get_global_option('PUBLICATIONTAGS'),
-        #    key=psi4.get_global_option('PUBLICATIONKEY'))
-        #email = psi4.get_global_option('EMAIL').replace('__', '@')
-        #mp1.add_author(api.authorType(
-        #    creator=psi4.get_global_option('CORRESPONDINGAUTHOR'),
-        #    type_='cs:corresponding',
-        #    organization=psi4.get_global_option('ORGANIZATION'),
-        #    email=None if email == '' else email))
         mp1 = api.mpType(
-            title='', abstract='', publisher='', status=0, category=2, visibility=0, tags='', key='')
+            title=psi4.get_global_option('PUBLICATIONTITLE'),
+            abstract=psi4.get_global_option('PUBLICATIONABSTRACT'),
+            publisher=psi4.get_global_option('PUBLICATIONPUBLISHER'),
+            status=['PRELIMINARY', 'DRAFT', 'FINAL'].index(psi4.get_global_option('PUBLICATIONSTATUS')),
+            category=psi4.get_global_option('PUBLICATIONCATEGORY'),
+            visibility=['PRIVATE', 'PROTECTED', 'PUBLIC'].index(psi4.get_global_option('PUBLICATIONVISIBILITY')),
+            tags=psi4.get_global_option('PUBLICATIONTAGS'),
+            key=psi4.get_global_option('PUBLICATIONKEY'))
+        email = psi4.get_global_option('EMAIL').replace('__', '@')
+        mp1.add_author(api.authorType(
+            creator=psi4.get_global_option('CORRESPONDINGAUTHOR'),
+            type_='cs:corresponding',
+            organization=psi4.get_global_option('ORGANIZATION'),
+            email=None if email == '' else email))
+        #mp1 = api.mpType(
+        #   title='', abstract='', publisher='', status=0, category=2, visibility=0, tags='', key='')
         mp1.set_sourcePackage(api.sourcePackageType(name='Psi4', version=psi4.version()))
-        mp1.add_author(api.authorType(creator='', type_='cs:corresponding', organization='', email=''))
+        #mp1.add_author(api.authorType(creator='', type_='cs:corresponding', organization='', email=''))
         cs1.set_molecularPublication(mp1)
 
         # molSystem section: 1.5
@@ -374,6 +450,11 @@ def writeCSX(name, **kwargs):
                 basisSet='bse:' + molBasis,
                 dftFunctional=name)  # TODO this'll need to be exported
             block.set_energies(form_ene(mandatoryPsivars, optionalPsivars, excessPsivars))
+            if wfn:
+                block.set_waveFunction(wfn1)
+            if hasFreq:
+                block.set_vibrationalAnalysis(vib1)
+            block.set_properties(prop1)
             sdm1.set_dft(block)
 
         # SCF: 1.5
@@ -390,6 +471,11 @@ def writeCSX(name, **kwargs):
                 spinType='cs:' + molSpin,
                 basisSet='bse:' + molBasis)
             block.set_energies(form_ene(mandatoryPsivars))
+            if wfn:
+                block.set_waveFunction(wfn1)
+            if hasFreq:
+                block.set_vibrationalAnalysis(vib1)
+            block.set_properties(prop1)
             sdm1.set_abinitioScf(block)
         else:
             psi4.print_out("""\nCSX version {0} does not support """
@@ -411,6 +497,11 @@ def writeCSX(name, **kwargs):
                 spinType='cs:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
                 basisSet='bse:' + molBasis)
             block.set_energies(form_ene(mandatoryPsivars, optionalPsivars))
+            if wfn:
+                block.set_waveFunction(wfn1)
+            if hasFreq:
+                block.set_vibrationalAnalysis(vib1)
+            block.set_properties(prop1)
             sdm1.set_mp2(block)
 
         # CCSD: 1.5
@@ -433,86 +524,6 @@ def writeCSX(name, **kwargs):
             #sdm1.set_ccsd(block)  # needs to be srsmd
 
         #print('CSX not harvesting: ', ', '.join(psivars))
-        # LAB TODO not addressed below here
-        # wavefunction: 1.5
-        if avalMethods:
-            if wfnRestricted:
-                wfn1 = api.waveFunctionType(
-                    orbitalCount=orbNum,
-                    orbitalOccupancies=orbOccString)
-                orbe1 = api.stringArrayType(unit='cs:hartree')
-                orbe1.set_valueOf_(orbEString)
-                orbs1 = api.orbitalsType()
-                for iorb in range(orbNum):
-                    orb1 = api.stringArrayType(id=iorb+1)
-                    orb1.set_valueOf_(orbCaString[iorb])
-                    orbs1.add_orbital(orb1)
-                wfn1.set_orbitals(orbs1)
-                wfn1.set_orbitalEnergies(orbe1)
-            else:
-                wfn1 = api.waveFunctionType(orbitalCount=orbNum)
-                # alpha electron: 1.5
-                orbe1 = api.stringArrayType(unit='cs:hartree')
-                orbe1.set_valueOf_(orbEString)
-                wfn1.set_alphaOrbitalEnergies(orbe1)
-                wfn1.set_alphaOrbitalOccupancies(orbOccString)
-                aorbs1 = api.orbitalsType()
-                for iorb in range(orbNum):
-                    orb1 = api.stringArrayType(id=iorb+1)
-                    orb1.set_valueOf_(orbCaString[iorb])
-                    aorbs1.add_orbital(orb1)
-                wfn1.set_alphaOrbitals(aorbs1)
-                # beta electron: 1.5
-                orbeb1 = api.stringArrayType(unit='cs:hartree')
-                orbeb1.set_valueOf_(orbEbString)
-                wfn1.set_betaOrbitalEnergies(orbeb1)
-                wfn1.set_betaOrbitalOccupancies(orbOccCbString)
-                borbs1 = api.orbitalsType()
-                for iorb in range(orbNum):
-                    orb1 = api.stringArrayType(id=iorb+1)
-                    orb1.set_valueOf_(orbCbString[iorb])
-                    borbs1.add_orbital(orb1)
-                wfn1.set_betaOrbitals(borbs1)
-
-            scf1.set_waveFunction(wfn1)
-            if dertype == 2:
-                vib1 = api.vibAnalysisType(vibrationCount=molFreqNum)
-                freq1 = api.stringArrayType(unit="cs:cm-1")
-                freq1.set_valueOf_(frqString)
-                vib1.set_frequencies(freq1)
-                irint1 = api.stringArrayType()
-                irint1.set_valueOf_(intString)
-                vib1.set_irIntensities(irint1)
-                norms1 = api.normalModesType()
-                for ifrq in range(molFreqNum):
-                    norm1 = api.normalModeType(id=ifrq+1)
-                    norm1.set_valueOf_(normMdString[ifrq])
-                    norms1.add_normalMode(norm1)
-                vib1.set_normalModes(norms1)
-                scf1.set_vibrationalAnalysis(vib1)
-            # Properties: 1.5
-            prop1 = api.propertiesType()
-            sprop1 = api.propertyType(
-                name='dipoleMomentX',
-                unit='cs:debye')
-            sprop1.set_valueOf_(molDipoleX)
-            sprop2 = api.propertyType(
-                name='dipoleMomentY',
-                unit='cs:debye')
-            sprop2.set_valueOf_(molDipoleY)
-            sprop3 = api.propertyType(
-                name='dipoleMomentZ',
-                unit='cs:debye')
-            sprop3.set_valueOf_(molDipoleZ)
-            sprop4 = api.propertyType(
-                name='dipoleMomentAverage',
-                unit='cs:debye')
-            sprop4.set_valueOf_(molDipoleTot)
-            prop1.add_systemProperty(sprop1)
-            prop1.add_systemProperty(sprop2)
-            prop1.add_systemProperty(sprop3)
-            prop1.add_systemProperty(sprop4)
-            scf1.set_properties(prop1)
 
         srs1.set_singleDeterminant(sdm1)
         qm1.set_singleReferenceState(srs1)
@@ -528,4 +539,6 @@ def writeCSX(name, **kwargs):
     # End to write the CSX file
 
 hooks['energy']['post'].append(writeCSX)
+hooks['optimize']['post'].append(writeCSX)
+hooks['frequency']['post'].append(writeCSX)
 
