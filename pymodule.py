@@ -28,11 +28,10 @@ import os
 import inputparser
 import math
 import warnings
-from driver import *
-from wrappers import *
+import driver
 from molutil import *
 import p4util
-from p4xcpt import *
+from p4util.exceptions import *
 
 
 def writeCSX(name, **kwargs):
@@ -92,22 +91,22 @@ def writeCSX(name, **kwargs):
     molEE = psi4.get_variable('CURRENT ENERGY')
     # wavefunction information
     try:
-        wfn = psi4.wavefunction()
+        wfn = kwargs['wfn']
     except AttributeError:
         pass
     if wfn:
-        molOrbE = psi4.wavefunction().epsilon_a()
-        molOrbEb = psi4.wavefunction().epsilon_b()
-        orbNmopi = psi4.wavefunction().nmopi()
-        orbNsopi = psi4.wavefunction().nsopi()
-        orbNum = psi4.wavefunction().nmo() if molOrbE else 0
-        orbSNum = psi4.wavefunction().nso()
-        molOrb = psi4.wavefunction().Ca()
-        orbNirrep = psi4.wavefunction().nirrep()
-        orbAotoso = psi4.wavefunction().aotoso()
-        orbDoccpi = psi4.wavefunction().doccpi()
-        orbSoccpi = psi4.wavefunction().soccpi()
-        basisNbf = psi4.wavefunction().basisset().nbf()
+        molOrbE = wfn.epsilon_a()
+        molOrbEb = wfn.epsilon_b()
+        orbNmopi = wfn.nmopi()
+        orbNsopi = wfn.nsopi()
+        orbNum = wfn.nmo() if molOrbE else 0
+        orbSNum = wfn.nso()
+        molOrb = wfn.Ca()
+        orbNirrep = wfn.nirrep()
+        orbAotoso = wfn.aotoso()
+        orbDoccpi = wfn.doccpi()
+        orbSoccpi = wfn.soccpi()
+        basisNbf = wfn.basisset().nbf()
         basisDim = psi4.Dimension(1, 'basisDim')
         basisDim.__setitem__(0, basisNbf)
         wfnRestricted = True
@@ -123,7 +122,7 @@ def writeCSX(name, **kwargs):
             hlistCb = []
             orblistCb = []
             orbOccCb = []
-            molOrbCb = psi4.wavefunction().Cb()
+            molOrbCb = wfn.Cb()
             molOrbmoCb = psi4.Matrix('molOrbmoCb', basisDim, orbNmopi)
             molOrbmoCb.gemm(False, False, 1.0, orbAotoso, molOrbCb, 0.0)
         count = 0
@@ -538,7 +537,8 @@ def writeCSX(name, **kwargs):
     csxfile.close()
     # End to write the CSX file
 
-hooks['energy']['post'].append(writeCSX)
-hooks['optimize']['post'].append(writeCSX)
-hooks['frequency']['post'].append(writeCSX)
+import procedures
+procedures.proc_table.hooks['energy']['post'].append(writeCSX)
+procedures.proc_table.hooks['optimize']['post'].append(writeCSX)
+procedures.proc_table.hooks['frequency']['post'].append(writeCSX)
 

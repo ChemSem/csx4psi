@@ -74,13 +74,13 @@ int read_options(std::string name, Options& options)
 }
 
 extern "C" 
-PsiReturnType csx4psi(Options& options)
+SharedWavefunction csx4psi(SharedWavefunction ref_wfn, Options& options)
 {
     int print = options.get_int("PRINT");
 
     /* Your code goes here */
 
-    return Success;
+    return ref_wfn;
 }
 
 }} // End namespaces
