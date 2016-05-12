@@ -42,7 +42,7 @@ int read_options(std::string name, Options& options)
         /*- Do write a CSX output file? -*/
         options.add_bool("WRITE_CSX", true);
         /*- Version of CSX. -*/
-        options.add_int("CSX_VERSION", 1);
+        options.add_int("CSX_VERSION", 2);
         /*- Brief title for CSX publication. -*/
         options.add_str("PUBLICATIONTITLE", "");
 //        /*- Abstract for CSX publication. -*/

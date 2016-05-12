@@ -49,7 +49,7 @@ def writeCSX(name, **kwargs):
     #import openbabel
     import qcdb
     import qcdb.periodictable
-    import csx1_api as api
+    import csx2_api as api
     lowername = name.lower()
     # Make sure the molecule the user provided is the active one
     if ('molecule' in kwargs):
@@ -178,7 +178,7 @@ def writeCSX(name, **kwargs):
             wfn1 = api.waveFunctionType(
                 orbitalCount=orbNum,
                 orbitalOccupancies=orbOccString)
-            orbe1 = api.stringArrayType(unit='cs:hartree')
+            orbe1 = api.stringArrayType(unit='gc:hartree')
             orbe1.set_valueOf_(orbEString)
             orbs1 = api.orbitalsType()
             for iorb in range(orbNum):
@@ -190,7 +190,7 @@ def writeCSX(name, **kwargs):
         else:
             wfn1 = api.waveFunctionType(orbitalCount=orbNum)
             # alpha electron: 1.5
-            orbe1 = api.stringArrayType(unit='cs:hartree')
+            orbe1 = api.stringArrayType(unit='gc:hartree')
             orbe1.set_valueOf_(orbEString)
             wfn1.set_alphaOrbitalEnergies(orbe1)
             wfn1.set_alphaOrbitalOccupancies(orbOccString)
@@ -201,7 +201,7 @@ def writeCSX(name, **kwargs):
                 aorbs1.add_orbital(orb1)
             wfn1.set_alphaOrbitals(aorbs1)
             # beta electron: 1.5
-            orbeb1 = api.stringArrayType(unit='cs:hartree')
+            orbeb1 = api.stringArrayType(unit='gc:hartree')
             orbeb1.set_valueOf_(orbEbString)
             wfn1.set_betaOrbitalEnergies(orbeb1)
             wfn1.set_betaOrbitalOccupancies(orbOccCbString)
@@ -234,7 +234,7 @@ def writeCSX(name, **kwargs):
                     count += 1
             normMdString.append(' '.join(str(x) for x in normM))
         vib1 = api.vibAnalysisType(vibrationCount=molFreqNum)
-        freq1 = api.stringArrayType(unit="cs:cm-1")
+        freq1 = api.stringArrayType(unit="gc:cm-1")
         freq1.set_valueOf_(frqString)
         vib1.set_frequencies(freq1)
         irint1 = api.stringArrayType()
@@ -257,19 +257,19 @@ def writeCSX(name, **kwargs):
     prop1 = api.propertiesType()
     sprop1 = api.propertyType(
         name='dipoleMomentX',
-        unit='cs:debye')
+        unit='gc:debye')
     sprop1.set_valueOf_(molDipoleX)
     sprop2 = api.propertyType(
         name='dipoleMomentY',
-        unit='cs:debye')
+        unit='gc:debye')
     sprop2.set_valueOf_(molDipoleY)
     sprop3 = api.propertyType(
         name='dipoleMomentZ',
-        unit='cs:debye')
+        unit='gc:debye')
     sprop3.set_valueOf_(molDipoleZ)
     sprop4 = api.propertyType(
         name='dipoleMomentAverage',
-        unit='cs:debye')
+        unit='gc:debye')
     sprop4.set_valueOf_(molDipoleTot)
     prop1.add_systemProperty(sprop1)
     prop1.add_systemProperty(sprop2)
@@ -291,12 +291,12 @@ def writeCSX(name, **kwargs):
 
     # Start to generate CSX elements
     # CSX version 1.5
-    if csxVer == 1.0:
+    if csxVer == 2.0:
         #       import csx1_api as api
-        cs1 = api.csType(version='1.0') #5')
+        cs1 = api.csType(version='2.0') #5')
 
         # molPublication section: 1.5
-        mp1 = api.mpType(
+        mp1 = api.mpubType(
             title=psi4.get_global_option('PUBLICATIONTITLE'),
             abstract=psi4.get_global_option('PUBLICATIONABSTRACT'),
             publisher=psi4.get_global_option('PUBLICATIONPUBLISHER'),
@@ -308,7 +308,7 @@ def writeCSX(name, **kwargs):
         email = psi4.get_global_option('EMAIL').replace('__', '@')
         mp1.add_author(api.authorType(
             creator=psi4.get_global_option('CORRESPONDINGAUTHOR'),
-            type_='cs:corresponding',
+            type_='gc:CorrespondingAuthor',
             organization=psi4.get_global_option('ORGANIZATION'),
             email=None if email == '' else email))
         #mp1 = api.mpType(
@@ -318,11 +318,11 @@ def writeCSX(name, **kwargs):
         cs1.set_molecularPublication(mp1)
 
         # molSystem section: 1.5
-        ms1 = api.msType(
+        ms1 = api.msysType(
             systemCharge=molCharge,
-            systemMultiplicity=molMulti)
-        temp1 = api.dataWithUnitsType(unit='cs:kelvin')
-        temp1.set_valueOf_(298.0)  # LAB dispute
+            systemMultiplicity=molMulti, id='s1')
+        temp1 = api.dataWithUnitsType(unit='gc:kelvin')
+        temp1.set_valueOf_(0.0)  # LAB dispute
         ms1.set_systemTemperature(temp1)
         mol1 = api.moleculeType(id='m1', atomCount=molecule.natom())
         #OBmol1 = api.moleculeType(id='m1', atomCount=atomNum)
@@ -353,9 +353,9 @@ def writeCSX(name, **kwargs):
             #xCoord1.set_valueOf_(molecule.x(at) * p4const.psi_bohr2angstroms)
             #yCoord1.set_valueOf_(molecule.y(at) * p4const.psi_bohr2angstroms)
             #zCoord1.set_valueOf_(molecule.z(at) * p4const.psi_bohr2angstroms)
-            xCoord1 = api.dataWithUnitsType(unit='cs:bohr')
-            yCoord1 = api.dataWithUnitsType(unit='cs:bohr')
-            zCoord1 = api.dataWithUnitsType(unit='cs:bohr')
+            xCoord1 = api.dataWithUnitsType(unit='gc:bohr')
+            yCoord1 = api.dataWithUnitsType(unit='gc:bohr')
+            zCoord1 = api.dataWithUnitsType(unit='gc:bohr')
             xCoord1.set_valueOf_(molecule.x(at))
             yCoord1.set_valueOf_(molecule.y(at))
             zCoord1.set_valueOf_(molecule.z(at))
@@ -369,7 +369,7 @@ def writeCSX(name, **kwargs):
                 xCoord3D=xCoord1,
                 yCoord3D=yCoord1,
                 zCoord3D=zCoord1,
-                basisSet='cs:' + molBasis,
+                basisSet='bse:' + molBasis,
                 calculatedAtomCharge=0,
                 formalAtomCharge=0)
             #OBiatm += 1
@@ -399,18 +399,16 @@ def writeCSX(name, **kwargs):
         cs1.set_molecularSystem(ms1)
 
         # molCalculation section: 1.5
-        avalMethods = False
-        mc1 = api.mcType()
+        mc1 = api.mcalType(id='c1')
         qm1 = api.qmCalcType()
         srs1 = api.srsMethodType()
-        sdm1 = api.srssdMethodType()
         psivars = psi4.get_variables()
 
         def form_ene(mandatoryPsivars, optionalPsivars={}, excessPsivars={}):
             """
 
             """
-            ene = api.energiesType(unit='cs:hartree')
+            ene = api.energiesType(unit='gc:hartree')
             for pv, csx in mandatoryPsivars.iteritems():
                 term = api.energyType(type_=csx)
                 term.set_valueOf_(psivars.pop(pv))
@@ -426,105 +424,237 @@ def writeCSX(name, **kwargs):
             return ene
 
         # Reference stage- every calc has one
-        # DFT 1.5
-        if 'DFT TOTAL ENERGY' in psivars:  # TODO robust enough to avoid MP2C, etc.?
-            mandatoryPsivars = {
-                'NUCLEAR REPULSION ENERGY': 'cs:nuclearRepulsion',
-                'DFT FUNCTIONAL TOTAL ENERGY': 'cs:dftFunctional',
-                'DFT TOTAL ENERGY': 'cs:electronic'}
-            optionalPsivars = {
-                'DOUBLE-HYBRID CORRECTION ENERGY': 'cs:doubleHybrid correction',
-                'DISPERSION CORRECTION ENERGY': 'cs:dispersion correction'}
-            excessPsivars = [
-                'MP2 TOTAL ENERGY',
-                'MP2 CORRELATION ENERGY',
-                'MP2 SAME-SPIN CORRELATION ENERGY']
+        if 'CCSD TOTAL ENERGY' in psivars or 'CCSD(T) TOTAL ENERGY' in psivars \
+                or 'CISD TOTAL ENERGY' in psivars or 'FCI TOTAL ENERGY' in psivars \
+                or 'QCISD TOTAL ENERGY' in psivars or 'QCISD(T) TOTAL ENERGY' in psivars:
+            mdm1 = api.srsmdMethodType()
+            # CCSD(T): 1.5
+            if 'CCSD(T) TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'CCSD(T) CORRELATION ENERGY': 'gc:correlation',
+                    'CCSD(T) TOTAL ENERGY': 'gc:electronic'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed CCSD(T) computation""")
 
-            if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
-                raise CSXError("""Malformed DFT computation""")
+                block = api.resultType(  # TODO should be pointing to HF for correlation, maybe to MP2 for guess
+                    methodology='gc:normal',  # TODO handle dfcc
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars))
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                mdm1.set_ccsd_t(block)
+            # CCSD: 1.5
+            elif 'CCSD TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'CCSD CORRELATION ENERGY': 'gc:correlation',
+                    'CCSD TOTAL ENERGY': 'gc:electronic'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed CCSD computation""")
 
-            block = api.resultType(
-                methodology='cs:normal',  # TODO handle dfhf, dfmp
-                spinType='cs:' + molSpin,
-                basisSet='bse:' + molBasis,
-                dftFunctional=name)  # TODO this'll need to be exported
-            block.set_energies(form_ene(mandatoryPsivars, optionalPsivars, excessPsivars))
-            if wfn:
-                block.set_waveFunction(wfn1)
-            if hasFreq:
-                block.set_vibrationalAnalysis(vib1)
-            block.set_properties(prop1)
-            sdm1.set_dft(block)
+                block = api.resultType(  # TODO should be pointing to HF for correlation, maybe to MP2 for guess
+                    methodology='gc:normal',  # TODO handle dfcc
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars))
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                mdm1.set_ccsd(block)
+            # CISD: 1.5
+            elif 'CISD TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'CISD CORRELATION ENERGY': 'gc:correlation',
+                    'CISD TOTAL ENERGY': 'gc:electronic'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed CISD computation""")
 
-        # SCF: 1.5
-        elif 'HF TOTAL ENERGY' in psivars:
-            mandatoryPsivars = {
-                'NUCLEAR REPULSION ENERGY': 'cs:nuclearRepulsion',
-                'HF TOTAL ENERGY': 'cs:electronic'}
+                block = api.resultType(  # TODO should be pointing to HF for correlation, maybe to MP2 for guess
+                    methodology='gc:normal',  # TODO handle dfcc
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars))
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                mdm1.set_cisd(block)
+            # FCI: 1.5
+            elif 'FCI TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'FCI CORRELATION ENERGY': 'gc:correlation',
+                    'FCI TOTAL ENERGY': 'gc:electronic'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed FCI computation""")
 
-            if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
-                raise CSXError("""Malformed HF computation""")
+                block = api.resultType(  # TODO should be pointing to HF for correlation, maybe to MP2 for guess
+                    methodology='gc:normal',  # TODO handle dfcc
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars))
+                mdm1.set_fci(block)
+            # QCISD(T): 1.5
+            elif 'QCISD(T) TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'QCISD(T) CORRELATION ENERGY': 'gc:correlation',
+                    'QCISD(T) TOTAL ENERGY': 'gc:electronic'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed QCISD(T) computation""")
 
-            block = api.resultType(
-                methodology='cs:normal',  # TODO handle dfhf, dfmp
-                spinType='cs:' + molSpin,
-                basisSet='bse:' + molBasis)
-            block.set_energies(form_ene(mandatoryPsivars))
-            if wfn:
-                block.set_waveFunction(wfn1)
-            if hasFreq:
-                block.set_vibrationalAnalysis(vib1)
-            block.set_properties(prop1)
-            sdm1.set_abinitioScf(block)
-        else:
-            psi4.print_out("""\nCSX version {0} does not support """
-                           """method {1} for {2}\n""".format(
-                           csxVer, lowername, 'energies'))
+                block = api.resultType(  # TODO should be pointing to HF for correlation, maybe to MP2 for guess
+                    methodology='gc:normal',  # TODO handle dfcc
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars))
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                mdm1.set_qcisd_t(block)
+            # QCISD: 1.5
+            elif 'QCISD TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'QCISD CORRELATION ENERGY': 'gc:correlation',
+                    'QCISD TOTAL ENERGY': 'gc:electronic'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed QCISD computation""")
 
-        # post-reference block
-        # MP2: 1.5
-        if 'MP2 TOTAL ENERGY' in psivars:
-            mandatoryPsivars = {
-                'MP2 CORRELATION ENERGY': 'cs:correlation'}
-            optionalPsivars = {
-                'MP2 SAME-SPIN CORRELATION ENERGY': 'cs:sameSpin correlation'}
-            if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
-                raise CSXError("""Malformed MP2 computation""")
+                block = api.resultType(  # TODO should be pointing to HF for correlation, maybe to MP2 for guess
+                    methodology='gc:normal',  # TODO handle dfcc
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars))
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                mdm1.set_qcisd(block)
+            srs1.set_multipleDeterminant(mdm1)
 
-            block = api.resultType(  # TODO should be pointing to HF for correlation
-                methodology='cs:normal',  # TODO handle dfmp
-                spinType='cs:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
-                basisSet='bse:' + molBasis)
-            block.set_energies(form_ene(mandatoryPsivars, optionalPsivars))
-            if wfn:
-                block.set_waveFunction(wfn1)
-            if hasFreq:
-                block.set_vibrationalAnalysis(vib1)
-            block.set_properties(prop1)
-            sdm1.set_mp2(block)
+        elif 'DFT TOTAL ENERGY' in psivars or 'HF TOTAL ENERGY' in psivars \
+                or 'MP2 TOTAL ENERGY' in psivars or 'MP3 TOTAL ENERGY' in psivars \
+                or 'MP4 TOTAL ENERGY' in psivars:
+            sdm1 = api.srssdMethodType()
+            # DFT 1.5
+            if 'DFT TOTAL ENERGY' in psivars:  # TODO robust enough to avoid MP2C, etc.?
+                mandatoryPsivars = {
+                    'NUCLEAR REPULSION ENERGY': 'gc:nuclearRepulsion',
+                    'DFT FUNCTIONAL TOTAL ENERGY': 'gc:dftFunctional',
+                    'DFT TOTAL ENERGY': 'gc:electronic'}
+                optionalPsivars = {
+                    'DOUBLE-HYBRID CORRECTION ENERGY': 'gc:doubleHybrid correction',
+                    'DISPERSION CORRECTION ENERGY': 'gc:dispersion correction'}
+                excessPsivars = [
+                    'MP2 TOTAL ENERGY',
+                    'MP2 CORRELATION ENERGY',
+                    'MP2 SAME-SPIN CORRELATION ENERGY']
 
-        # CCSD: 1.5
-        if 'CCSD TOTAL ENERGY' in psivars:
-            mandatoryPsivars = {
-                'CCSD CORRELATION ENERGY': 'cs:correlation'}
-            optionalPsivars = {
-                'CCSD SAME-SPIN CORRELATION ENERGY': 'cs:sameSpin correlation'}
-            excessPsivars = [
-                'CCSD TOTAL ENERGY',
-                'CCSD OPPOSITE-SPIN CORRELATION ENERGY']
-            if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
-                raise CSXError("""Malformed CCSD computation""")
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed DFT computation""")
 
-            block = api.resultType(  # TODO should be pointing to HF for correlation, maybe to MP2 for guess
-                methodology='cs:normal',  # TODO handle dfcc
-                spinType='cs:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
-                basisSet='bse:' + molBasis)
-            block.set_energies(form_ene(mandatoryPsivars, optionalPsivars))
-            #sdm1.set_ccsd(block)  # needs to be srsmd
+                block = api.resultType(
+                    methodology='gc:normal',  # TODO handle dfhf, dfmp
+                    spinType='gc:' + molSpin,
+                    basisSet='bse:' + molBasis,
+                    dftFunctional=name)  # TODO this'll need to be exported
+                block.set_energies(form_ene(mandatoryPsivars, optionalPsivars, excessPsivars))
+                if wfn:
+                    block.set_waveFunction(wfn1)
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                block.set_properties(prop1)
+                sdm1.set_dft(block)
+
+
+            # post-reference block
+            # MP4: 1.5
+            elif 'MP4 TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'MP4 CORRELATION ENERGY': 'gc:correlation',
+                    'MP4 TOTAL ENERGY': 'gc:electronic'}
+                optionalPsivars = {
+                    'MP4 SAME-SPIN CORRELATION ENERGY': 'gc:sameSpin correlation'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed MP4 computation""")
+
+                block = api.resultType(  # TODO should be pointing to HF for correlation
+                    methodology='gc:normal',  # TODO handle dfmp
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars, optionalPsivars))
+                if wfn:
+                    block.set_waveFunction(wfn1)
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                block.set_properties(prop1)
+                sdm1.set_mp4(block)
+
+            # MP3: 1.5
+            elif 'MP3 TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'MP3 CORRELATION ENERGY': 'gc:correlation',
+                    'MP3 TOTAL ENERGY': 'gc:electronic'}
+                optionalPsivars = {
+                    'MP3 SAME-SPIN CORRELATION ENERGY': 'gc:sameSpin correlation'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed MP3 computation""")
+
+                block = api.resultType(  # TODO should be pointing to HF for correlation
+                    methodology='gc:normal',  # TODO handle dfmp
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars, optionalPsivars))
+                if wfn:
+                    block.set_waveFunction(wfn1)
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                block.set_properties(prop1)
+                sdm1.set_mp3(block)
+
+            # MP2: 1.5
+            elif 'MP2 TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'MP2 CORRELATION ENERGY': 'gc:correlation',
+                    'MP2 TOTAL ENERGY': 'gc:electronic'}
+                optionalPsivars = {
+                    'MP2 SAME-SPIN CORRELATION ENERGY': 'gc:sameSpin correlation'}
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed MP2 computation""")
+
+                block = api.resultType(  # TODO should be pointing to HF for correlation
+                    methodology='gc:normal',  # TODO handle dfmp
+                    spinType='gc:' + molSpin,  # TODO could have a closed-shell corl mtd atop open-shell scf?
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars, optionalPsivars))
+                if wfn:
+                    block.set_waveFunction(wfn1)
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                block.set_properties(prop1)
+                sdm1.set_mp2(block)
+
+            # SCF: 1.5
+            elif 'HF TOTAL ENERGY' in psivars:
+                mandatoryPsivars = {
+                    'NUCLEAR REPULSION ENERGY': 'gc:nuclearRepulsion',
+                    'HF TOTAL ENERGY': 'gc:electronic'}
+
+                if not all([pv in psivars for pv in mandatoryPsivars.keys()]):
+                    raise CSXError("""Malformed HF computation""")
+
+                block = api.resultType(
+                    methodology='gc:normal',  # TODO handle dfhf, dfmp
+                    spinType='gc:' + molSpin,
+                    basisSet='bse:' + molBasis)
+                block.set_energies(form_ene(mandatoryPsivars))
+                if wfn:
+                    block.set_waveFunction(wfn1)
+                if hasFreq:
+                    block.set_vibrationalAnalysis(vib1)
+                block.set_properties(prop1)
+                sdm1.set_abinitioScf(block)
+            else:
+                psi4.print_out("""\nCSX version {0} does not support """
+                               """method {1} for {2}\n""".format(
+                               csxVer, lowername, 'energies'))
+
+            srs1.set_singleDeterminant(sdm1)
 
         #print('CSX not harvesting: ', ', '.join(psivars))
 
-        srs1.set_singleDeterminant(sdm1)
         qm1.set_singleReferenceState(srs1)
         mc1.set_quantumMechanics(qm1)
         cs1.set_molecularCalculation(mc1)
